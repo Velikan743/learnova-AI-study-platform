@@ -60,3 +60,73 @@
   .auth-secure{padding-top:6px}
   .auth-footer{bottom:4px}
 }
+
+/* Improve readability across the dashboard and study tools. */
+:root{font-size:15px}
+.workspace-copy b,.profile-copy b{font-size:14px}
+.workspace-copy small,.profile-copy small{font-size:12px}
+.nav-label{font-size:11px}
+.nav-link{font-size:14px}
+.nav-tools .nav-link{font-size:13px}
+.nav-count{font-size:12px}
+.upgrade-card>b{font-size:14px}
+.upgrade-card p{font-size:11px}
+.upgrade-card button,.settings-link{font-size:12px}
+.crumb{font-size:13px}
+.search input{font-size:13px}
+.search kbd{font-size:10px}
+.welcome-row h1,.section-heading h1{font-size:30px}
+.welcome-sub,.section-heading>p{font-size:14px}
+.eyebrow{font-size:11px}
+.primary-button{font-size:12px}
+.stat-heading{font-size:13px}
+.stat-value{font-size:29px}
+.stat-value small{font-size:13px}
+.stat-foot{font-size:11px}
+.panel-head h2,.panel h2{font-size:16px}
+.panel-head p{font-size:11px}
+.select-pill{font-size:11px}
+.chart-legend{font-size:11px}
+.chart-y,.chart-x{font-size:10px}
+.focus-progress>div:last-child>b{font-size:14px}
+.focus-progress>div:last-child>small{font-size:10px}
+.task-row>div b{font-size:11px}
+.task-row>div small{font-size:10px}
+.task-tag{font-size:9px}
+.text-button{font-size:11px}
+.session-info b{font-size:11px}
+.session-info small{font-size:10px}
+.session-action{font-size:10px}
+.quick-tool b{font-size:12px}
+.quick-tool small{font-size:10px}
+.section-heading{margin-bottom:21px}
+.tool-label b{font-size:16px}
+.tool-label small{font-size:11px}
+.tool-form .field-label{font-size:12px}
+.tool-form .field-label input,.tool-form .field-label textarea,.tool-form .field-label select{font-size:14px}
+.info-callout{font-size:11px}
+.pdf-upload-copy b,.uploaded-file-row b{font-size:13px}
+.pdf-upload-copy small,.uploaded-file-row small{font-size:10px}
+.pdf-upload-actions label,.pdf-upload-actions button{font-size:11px}
+.privacy-note{font-size:10px}
+.tip-card .eyebrow{font-size:10px}
+.tip-card h3{font-size:15px}
+.tip-card p{font-size:12px}
+.recent-card h3{font-size:13px}
+.recent-card .panel-head p{font-size:10px}
+.recent-empty p{font-size:11px}
+.library-copy b{font-size:13px}
+.library-copy small{font-size:10px}
+.pdf-upload-card>input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;opacity:0}
+@media(max-width:600px){
+  .nav-link{font-size:12px}
+  .nav-tools .nav-link{font-size:11px}
+  .welcome-row h1,.section-heading h1{font-size:25px}
+  .welcome-sub,.section-heading>p{font-size:13px}
+  .stat-heading{font-size:11px}
+  .stat-value{font-size:25px}
+  .panel-head h2,.panel h2{font-size:15px}
+  .task-row>div b,.session-info b{font-size:10px}
+  .tool-label b{font-size:15px}
+  .pdf-upload-copy b{font-size:12px}
+}
