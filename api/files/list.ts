@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleError, sendMethodNotAllowed, sessionId } from '../_lib/auth';
-import { database } from '../_lib/db';
+import { handleError, sendMethodNotAllowed, sessionId } from '../_lib/auth.js';
+import { database } from '../_lib/db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return sendMethodNotAllowed(res, 'GET');

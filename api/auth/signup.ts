@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import bcrypt from 'bcryptjs';
-import { accountFromRow, bodyString, handleError, publicAccount, sendMethodNotAllowed, setSession } from '../_lib/auth';
-import { database } from '../_lib/db';
+import { accountFromRow, bodyString, handleError, publicAccount, sendMethodNotAllowed, setSession } from '../_lib/auth.js';
+import { database } from '../_lib/db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return sendMethodNotAllowed(res, 'POST');
