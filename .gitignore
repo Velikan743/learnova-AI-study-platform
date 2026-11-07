@@ -5,3 +5,6 @@ dist
 !.env.example
 data
 *.tsbuildinfo
+.neon
+.agents
+skills-lock.json

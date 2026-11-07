@@ -34,7 +34,7 @@ export function bodyString(req: VercelRequest, key: string) {
 export function handleError(res: VercelResponse, error: unknown) {
   console.error(error);
   const message = error instanceof Error ? error.message : '';
-  if (/DATABASE_URL|SESSION_SECRET/.test(message)) return res.status(503).json({ error: message });
+  if (/AWS_|DATABASE_URL|SESSION_SECRET/.test(message)) return res.status(503).json({ error: message });
   return res.status(500).json({ error: 'Something went wrong on the server.' });
 }
 export function accountFromRow(row: Record<string, unknown>): Account {

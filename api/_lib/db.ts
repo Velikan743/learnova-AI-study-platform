@@ -1,19 +1,13 @@
-import { neon } from '@neondatabase/serverless';
+import { attachDatabasePool } from '@vercel/functions';
+import { Pool } from 'pg';
+
+let pool: Pool | undefined;
 
 export function database() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is not configured. Connect a Neon Postgres database in Vercel.');
-  return neon(url);
-}
-
-export async function ensureAccountsTable() {
-  const sql = database();
-  await sql`CREATE TABLE IF NOT EXISTS learnova_accounts (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )`;
-  return sql;
+  if (pool) return pool;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error('DATABASE_URL is not configured.');
+  pool = new Pool({ connectionString, max: 5, idleTimeoutMillis: 20_000, connectionTimeoutMillis: 10_000 });
+  if (process.env.VERCEL) attachDatabasePool(pool);
+  return pool;
 }
