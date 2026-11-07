@@ -130,3 +130,26 @@
   .tool-label b{font-size:15px}
   .pdf-upload-copy b{font-size:12px}
 }
+.exam-planner-instructions{margin:-4px 0 13px;color:#77778e;font-size:12px;line-height:1.55}
+.exam-row-headings,.exam-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(100px,.75fr) 34px;align-items:end;gap:10px}
+.exam-row-headings{padding:0 4px 7px;color:#77778e;font-size:11px;font-weight:700}
+.exam-row{padding:0 0 10px;margin-bottom:10px;border-bottom:1px solid #efedf4}
+.exam-row>label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#55556c}
+.exam-row .text-input{min-width:0;width:100%;height:41px;border:1px solid #e9e8f0;border-radius:6px;background:#fff;padding:9px 10px;color:#3c3c54;font-size:13px;font-weight:400}
+.exam-weekday{display:flex;flex-direction:column;gap:9px;padding:0 2px 11px;color:#55556c;font-size:11px}
+.exam-weekday b{font-size:13px;font-weight:600;color:#494960}
+.exam-remove{height:34px;width:34px;margin-bottom:3px;border:1px solid #e9e8f0;border-radius:6px;color:#77778e;font-size:19px;line-height:1}
+.exam-remove:disabled{opacity:.35;cursor:not-allowed}
+.add-exam-row{padding:8px 0 15px;color:#6d61cf;font-size:12px;font-weight:700}
+.planner-notes-label{margin-top:2px}
+.planner-prompt-data{display:none!important}
+@media(max-width:600px){
+  .exam-planner-instructions{font-size:11px}
+  .exam-row-headings,.exam-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 82px 30px;gap:6px}
+  .exam-row-headings{font-size:9px}
+  .exam-row>label{font-size:10px}
+  .exam-row .text-input{font-size:12px;padding-inline:7px}
+  .exam-weekday{font-size:9px;padding-bottom:11px}
+  .exam-weekday b{font-size:10px}
+  .exam-remove{width:30px;height:32px}
+}

@@ -4,7 +4,7 @@ type Tool = { id: string; name: string; icon: string; color: string; description
 const tools: Tool[] = [
   { id: 'quiz', name: 'AI Quiz Maker', icon: '✳', color: 'lavender', description: 'Turn your notes into a quiz', prompt: 'Create a study quiz from the material below. Include 5 questions, four choices per question, mark the correct answer, and explain each answer briefly.', placeholder: 'Paste your class notes, a topic, or a chapter…' },
   { id: 'notes', name: 'Notes Summarizer', icon: '▤', color: 'peach', description: 'Find the ideas that matter', prompt: 'Summarize these study notes into a clear title, a concise overview, key concepts, and a short list of important terms to remember.', placeholder: 'Paste the notes you want to summarize…' },
-  { id: 'planner', name: 'Exam Prep Planner', icon: '▦', color: 'mint', description: 'Make a plan that feels doable', prompt: 'Create a practical day-by-day exam revision plan from these subjects and dates. Use focused study blocks, spaced review, and breaks.', placeholder: 'List your subjects, exam dates, and time available…' },
+  { id: 'planner', name: 'Exam Prep Planner', icon: '▦', color: 'mint', description: 'Build a revision plan around your exam timetable', prompt: 'Create a practical day-by-day revision plan using the student’s exact exam timetable, current date, and daily study availability below. Respect the exam order. Prioritize the nearest exam while keeping later subjects in spaced review. Give each study block a subject, topic or task, and duration; include active recall, practice questions, and breaks. Do not schedule study for a subject after its exam date. On an exam day, schedule at most a brief optional review before the exam; do not schedule post-exam study for that subject. Make the plan realistic and clearly label each calendar day with its date and weekday.', placeholder: 'Add your exams in the timetable below.' },
   { id: 'performance', name: 'Performance Analyzer', icon: '▥', color: 'blue', description: 'Turn results into next steps', prompt: 'Review this student performance data. Identify strengths, subjects to prioritize, patterns over time, and give a supportive, specific improvement plan.', placeholder: 'Add your recent scores, subjects, or study patterns…' },
   { id: 'transcript', name: 'Transcript Generator', icon: '◉', color: 'rose', description: 'Get a transcript from a lecture link', prompt: 'The student provided a lecture video link. Explain whether its transcript is accessible from the supplied information. If the transcript text is supplied, format it as a clean, timestamped transcript with speaker labels and a concise key-takeaways section. Never invent spoken words. Link:', placeholder: 'Paste a YouTube or lecture video link…' },
   { id: 'advisor', name: 'AI Study Advisor', icon: '✧', color: 'lavender', description: 'Your study buddy, always around', prompt: 'You are a warm, practical study advisor. Give an encouraging answer grounded in learning science, structured for a student, with concrete next steps. Keep it focused.', placeholder: 'Ask about focus, study habits, or a tough topic…' },
@@ -23,6 +23,7 @@ function render() {
   app.innerHTML = `<div class="shell"><aside class="sidebar"><a class="brand" href="#"><span class="brand-mark">✳</span><span>learnova<span class="brand-period">.</span></span></a><button class="workspace-switch"><span class="avatar avatar-small">${initials(user.name)}</span><span class="workspace-copy"><b>${esc(user.name)}’s space</b><small>Personal workspace</small></span><span class="switch-chevron">⌄</span></button><div class="nav-label">MENU</div><nav class="nav-main">${navItem('Dashboard','⌂')} ${navItem('My Library','▤')} ${navItem('Study Planner','▦')} ${navItem('Progress','◒')}</nav><div class="nav-label tools-label">YOUR TOOLS</div><nav class="nav-tools">${tools.map(t => `<button class="nav-link ${active===t.name?'selected':''}" data-tool="${t.id}"><span class="nav-glyph ${t.color}">${t.icon}</span><span>${t.name}</span></button>`).join('')}</nav><div class="sidebar-bottom"><div class="upgrade-card"><div class="upgrade-spark">✳</div><b>A little more room<br/>to grow?</b><p>Make every study session count with Learnova Plus.</p><button data-action="upgrade">Explore Plus <span>↗</span></button></div><button class="nav-link settings-link" data-action="settings"><span>⚙</span> Settings</button><button class="profile-button" data-action="profile"><span class="avatar">${initials(user.name)}</span><span class="profile-copy"><b>${esc(user.name)}</b><small>${esc(user.email)}</small></span><span class="dots">•••</span></button></div></aside><main class="main"><header class="topbar"><div class="crumb"><span>My space</span><i>/</i><b>${esc(active)}</b></div><div class="top-actions"><label class="search"><span>⌕</span><input placeholder="Search anything..." /><kbd>⌘ K</kbd></label><button class="icon-button" aria-label="Notifications" data-action="notifications">♧<i class="notification-dot"></i></button><span class="top-divider"></span><button class="avatar top-avatar" data-action="profile">${initials(user.name)}</button></div></header><div class="content">${active==='Dashboard' ? dashboard() : renderSection(active)}</div></main></div><div id="modal-root"></div><div id="toast-root"></div>`;
   bind();
   enhanceToolUploads();
+  if (active === 'Exam Prep Planner') enhancePlannerTimetable();
   if (active === 'My Library') enhanceUploadedLibrary();
 }
 function initials(s:string){return s.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
@@ -67,6 +68,58 @@ async function uploadPdf(){
     const completedJson=await completedResponse.json();if(!completedResponse.ok)throw Error(completedJson.error||'Could not finish saving the PDF.');
     activeDocument={id:completedJson.id,filename:completedJson.filename};render();toast('PDF saved privately to your library.');
   }catch(error){toast((error as Error).message||'PDF upload failed.')}finally{const current=document.querySelector<HTMLButtonElement>('[data-upload-pdf]');if(current){current.disabled=false;current.textContent='Upload PDF'}}
+}
+function localDateString(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+function plannerExamRowMarkup(){
+  return `<div class="exam-row"><label><span>Subject</span><input class="text-input" data-exam-subject maxlength="100" placeholder="e.g. Biology" /></label><label><span>Exam date</span><input class="text-input" data-exam-date type="date" min="${localDateString()}" /></label><div class="exam-weekday"><span>Day</span><b data-exam-weekday>Select a date</b></div><button class="exam-remove" type="button" data-remove-exam aria-label="Remove exam">×</button></div>`;
+}
+function enhancePlannerTimetable(){
+  const form=app.querySelector<HTMLDivElement>('.tool-form');if(!form||form.querySelector('.exam-planner-form'))return;
+  const heading=form.querySelector('.tool-label small');if(heading)heading.textContent='Add each subject and its scheduled exam date.';
+  const intro=app.querySelector<HTMLParagraphElement>('.section-heading>p');if(intro)intro.textContent='Enter your exam timetable. Learnova will build a day-by-day study plan around it.';
+  const oldInput=form.querySelector('#tool-input')?.closest('label');
+  if(!oldInput)return;
+  const planner=document.createElement('div');planner.className='exam-planner-form';
+  planner.innerHTML=`<p class="exam-planner-instructions">Add your exams in date order. The weekday is filled in automatically.</p><div class="exam-row-headings"><span>Subject</span><span>Exam date</span><span>Day</span><span></span></div><div class="exam-rows">${plannerExamRowMarkup()}</div><button class="add-exam-row" type="button" data-add-exam>＋ Add another exam</button><label class="field-label planner-notes-label">Topics or priorities <span class="optional">Optional</span><textarea id="planner-notes" rows="3" placeholder="List chapters, difficult topics, or other priorities…"></textarea></label><textarea id="tool-input" class="planner-prompt-data" aria-hidden="true" tabindex="-1"></textarea>`;
+  oldInput.replaceWith(planner);
+  const optionLabel=form.querySelector<HTMLLabelElement>('.tool-controls .field-label.compact');
+  if(optionLabel)optionLabel.innerHTML=`Daily study time<select id="tool-option" class="text-input"><option>1 hour per day</option><option selected>2 hours per day</option><option>3 hours per day</option><option>4 hours per day</option><option>5 hours per day</option><option>6 hours per day</option></select>`;
+  const tip=form.parentElement?.querySelector('.tip-card');
+  const tipHeading=tip?.querySelector('h3');if(tipHeading)tipHeading.textContent='Enter every exam date';
+  const tipBody=tip?.querySelector('p');if(tipBody)tipBody.textContent='Add each subject and its scheduled date. Learnova uses the exam order and time remaining to prioritize your revision.';
+  const button=form.querySelector<HTMLButtonElement>('[data-action="generate"]');if(button){button.dataset.action='generate-planner';button.innerHTML='<span>✧</span> Build my study plan <span>→</span>';button.setAttribute('aria-label','Build my study plan');button.onclick=()=>generatePlanner();}
+  const rows=planner.querySelector<HTMLDivElement>('.exam-rows')!;
+  const refresh=()=>{
+    const allRows=Array.from(rows.querySelectorAll<HTMLDivElement>('.exam-row'));
+    for(const row of allRows){
+      const date=row.querySelector<HTMLInputElement>('[data-exam-date]')!.value;
+      const dayLabel=row.querySelector<HTMLElement>('[data-exam-weekday]')!;
+      if(date){const [year,month,day]=date.split('-').map(Number);dayLabel.textContent=new Intl.DateTimeFormat('en',{weekday:'long'}).format(new Date(year,month-1,day));}
+      else dayLabel.textContent='Select a date';
+      const remove=row.querySelector<HTMLButtonElement>('[data-remove-exam]')!;remove.disabled=allRows.length===1;
+    }
+  };
+  planner.addEventListener('input',refresh);planner.addEventListener('change',refresh);
+  planner.addEventListener('click',event=>{
+    const target=event.target as HTMLElement;
+    if(target.closest('[data-add-exam]')){if(rows.querySelectorAll('.exam-row').length>=12){toast('Add up to 12 exams to one study plan.');return}rows.insertAdjacentHTML('beforeend',plannerExamRowMarkup());refresh();rows.querySelector<HTMLInputElement>('.exam-row:last-child [data-exam-subject]')?.focus();}
+    if(target.closest('[data-remove-exam]')&&rows.querySelectorAll('.exam-row').length>1){target.closest('.exam-row')?.remove();refresh();}
+  });
+  refresh();
+}
+function generatePlanner(){
+  const wrapper=app.querySelector<HTMLDivElement>('.exam-planner-form');const input=wrapper?.querySelector<HTMLTextAreaElement>('#tool-input');if(!wrapper||!input)return;
+  const rows=Array.from(wrapper.querySelectorAll<HTMLDivElement>('.exam-row'));
+  const exams=rows.map(row=>({subject:row.querySelector<HTMLInputElement>('[data-exam-subject]')!.value.trim(),date:row.querySelector<HTMLInputElement>('[data-exam-date]')!.value}));
+  if(exams.some(exam=>!exam.subject||!exam.date)){toast('Enter a subject and exam date for every row.');return}
+  if(!exams.length){toast('Add at least one exam to build your plan.');return}
+  const today=localDateString();if(exams.some(exam=>exam.date<today)){toast('Exam dates must be today or later.');return}
+  exams.sort((a,b)=>a.date.localeCompare(b.date));
+  const dailyTime=wrapper.closest('.tool-form')?.querySelector<HTMLSelectElement>('#tool-option')?.value||'2 hours per day';
+  const timetable=exams.map(exam=>{const [year,month,day]=exam.date.split('-').map(Number);const weekday=new Intl.DateTimeFormat('en',{weekday:'long'}).format(new Date(year,month-1,day));return `- ${exam.subject}: ${weekday}, ${exam.date}`}).join('\n');
+  const notes=wrapper.querySelector<HTMLTextAreaElement>('#planner-notes')?.value.trim();
+  input.value=`Current date: ${today}\nAvailable study time: ${dailyTime}\nExam timetable (in chronological order):\n${timetable}${notes?`\n\nTopics and priorities:\n${notes}`:''}`;
+  void generate('planner');
 }
 function enhanceUploadedLibrary(){
   const content=app.querySelector<HTMLDivElement>('.content');if(!content||content.querySelector('.uploaded-documents'))return;
