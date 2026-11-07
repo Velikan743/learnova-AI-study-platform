@@ -13,6 +13,7 @@ import uploadUrl from '../api/files/upload-url';
 import completeUpload from '../api/files/complete';
 import listFiles from '../api/files/list';
 import downloadFile from '../api/files/download';
+import subjects from '../api/subjects';
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -33,6 +34,7 @@ app.post('/api/files/upload-url', route(uploadUrl));
 app.post('/api/files/complete', route(completeUpload));
 app.get('/api/files/list', route(listFiles));
 app.get('/api/files/download', route(downloadFile));
+app.all('/api/subjects', route(subjects));
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err); res.status(500).json({ error: 'Something went wrong on the server.' });
