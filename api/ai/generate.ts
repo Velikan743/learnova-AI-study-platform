@@ -27,7 +27,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       parts.push({ text: `The attached study document is named “${String(result.rows[0].filename).replace(/[<>]/g, '')}”. Use it as the source material.` });
     }
     const model = new GoogleGenerativeAI(key).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-3.8-flash' });
-    const response = await model.generateContent(parts);
+    let response;
+    try {
+      response = await model.generateContent(parts);
+    } catch (error) {
+      console.error('Gemini generation failed:', error);
+      const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
+      const message = typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '';
+      if (status === 401 || status === 403 || /API_KEY_INVALID|API key not valid/i.test(message)) {
+        return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in your Vercel environment variables, then redeploy.' });
+      }
+      if (status === 404 || /model.*not found|not supported for generateContent/i.test(message)) {
+        return res.status(502).json({ error: `Gemini model “${process.env.GEMINI_MODEL || 'gemini-3.8-flash'}” is unavailable for this API key. Remove GEMINI_MODEL or set it to a model enabled in Google AI Studio, then redeploy.` });
+      }
+      if (status === 429) {
+        return res.status(502).json({ error: 'Google Gemini rate limit or quota was reached. Check the project’s Gemini API limits and try again shortly.' });
+      }
+      if (status >= 500) {
+        return res.status(502).json({ error: 'Google Gemini is temporarily unavailable. Wait a moment and try again.' });
+      }
+      return res.status(502).json({ error: 'Google Gemini could not generate this response. Check the Vercel function logs for the provider error.' });
+    }
     return res.json({ text: response.response.text() });
   } catch (error) { return handleError(res, error); }
 }
