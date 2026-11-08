@@ -53,9 +53,12 @@
 .result-content hr{border:0;border-top:1px solid #e9e7f2;margin:16px 0}.result-content blockquote{margin:10px 0;padding:8px 12px;border-left:3px solid #8372e9;background:#faf9ff}
 .result-content code{font-family:ui-monospace,monospace;background:#f2f0fa;border-radius:4px;padding:1px 4px}
 .recent-creation-list{display:grid;gap:5px;max-height:300px;overflow:auto}
-.recent-creation{display:flex;width:100%;flex-direction:column;align-items:flex-start;gap:4px;padding:9px 10px;border:1px solid #eeedf4;border-radius:7px;background:#fff;text-align:left;cursor:pointer}
+.recent-entry{display:flex;align-items:stretch;gap:5px;min-width:0}
+.recent-creation{display:flex;flex:1;min-width:0;width:100%;flex-direction:column;align-items:flex-start;gap:4px;padding:9px 10px;border:1px solid #eeedf4;border-radius:7px;background:#fff;text-align:left;cursor:pointer}
 .recent-creation:hover{border-color:#cfc8f6;background:#faf9ff}
 .recent-creation b{font-size:11px;color:#45455c;line-height:1.45}.recent-creation small{font-size:9px;color:#9999aa}
+.recent-delete{width:34px;flex:none;border:1px solid #eeedf4;border-radius:7px;color:#9b7180;background:#fff;font-size:18px;line-height:1;cursor:pointer}
+.recent-delete:hover{border-color:#f0c5d2;background:#fff7fa;color:#bd496a}.recent-delete:disabled{opacity:.55;cursor:wait}
 /* Keep compact secondary text readable without letting it escape its card. */
 .shell .quick-tool small{font-size:11px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
 .subjects-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
