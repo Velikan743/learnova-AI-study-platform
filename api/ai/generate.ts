@@ -40,6 +40,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
         continue;
       }
+      if ((status >= 500 || status === 0) && attempt === 2) {
+        const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+        const fallbackModel = primaryModel === 'gemini-3.7-flash' ? 'gemini-3.6-flash' : 'gemini-3.7-flash';
+        try {
+          console.warn(`Retrying Gemini request with fallback model ${fallbackModel}.`);
+          response = await new GoogleGenerativeAI(key).getGenerativeModel({ model: fallbackModel }).generateContent(parts);
+          break;
+        } catch (fallbackError) {
+          console.error(`Gemini fallback model ${fallbackModel} failed:`, fallbackError);
+          const fallbackStatus = typeof fallbackError === 'object' && fallbackError !== null && 'status' in fallbackError ? Number(fallbackError.status) : 0;
+          if (fallbackStatus >= 500 || fallbackStatus === 0) {
+            return res.status(502).json({ error: 'Google Gemini is temporarily unavailable on multiple models. Wait a moment and try again.' });
+          }
+          if (fallbackStatus === 429) {
+            return res.status(502).json({ error: 'Google Gemini rate limit or quota was reached. Check the project’s Gemini API limits and try again shortly.' });
+          }
+          return res.status(502).json({ error: 'Gemini’s primary model failed and its fallback model is unavailable. Check the Vercel function logs for details.' });
+        }
+      }
       if (status === 401 || status === 403 || /API_KEY_INVALID|API key not valid/i.test(message)) {
         return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in your Vercel environment variables, then redeploy.' });
       }
