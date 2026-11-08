@@ -60,6 +60,9 @@
 .subject-empty{padding:14px 4px}
 .subject-empty b{display:block;color:#55556c;font-size:13px;margin-bottom:3px}
 .subject-empty small{font-size:11px;color:#9292a6}
+/* Hide illustrative chart artwork until the app has real score history to plot. */
+.performance-panel .chart-legend,.performance-panel .chart-wrap,.progress-chart .chart-legend,.progress-chart .chart-wrap{display:none}
+.performance-panel .panel-head p{max-width:420px}
 .library-empty{grid-column:1/-1;padding:22px}
 .library-empty h2{margin:0 0 7px;font-size:15px}
 .library-empty p{font-size:12px;color:#85859a;margin:0}
