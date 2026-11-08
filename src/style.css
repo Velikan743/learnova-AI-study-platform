@@ -56,8 +56,8 @@
 .recent-creation{display:flex;width:100%;flex-direction:column;align-items:flex-start;gap:4px;padding:9px 10px;border:1px solid #eeedf4;border-radius:7px;background:#fff;text-align:left;cursor:pointer}
 .recent-creation:hover{border-color:#cfc8f6;background:#faf9ff}
 .recent-creation b{font-size:11px;color:#45455c;line-height:1.45}.recent-creation small{font-size:9px;color:#9999aa}
-/* Improve readability of secondary labels throughout the signed-in workspace. */
-.shell :is(small,.eyebrow,.optional,.privacy-note,.info-callout,.recent-empty,.field-label,.exam-planner-instructions,.exam-row-headings,.subject-empty-inline,.nav-label){font-size:max(10px,1.1em)}
+/* Keep compact secondary text readable without letting it escape its card. */
+.shell .quick-tool small{font-size:11px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
 .subjects-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .subjects-panel-head h2{font:700 16px 'Manrope';margin:0;color:#30304a}
 .subjects-panel-head p{font-size:12px;color:#85859a;margin:5px 0 0;line-height:1.5}
