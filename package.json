@@ -24,6 +24,7 @@
     "express": "^4.21.2",
     "files-sdk": "^3.1.2",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^4.2.1",
     "pg": "^8.23.1"
   },
   "devDependencies": {
