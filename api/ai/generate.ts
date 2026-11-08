@@ -4,6 +4,67 @@ import { bodyString, handleError, sendMethodNotAllowed, sessionId } from '../_li
 import { database } from '../_lib/db.js';
 import { storage } from '../_lib/storage.js';
 
+function youtubeVideoUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:') return null;
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    if (!['youtube.com', 'm.youtube.com', 'youtu.be', 'youtube-nocookie.com'].includes(host)) return null;
+    if (host === 'youtu.be' && !url.pathname.slice(1)) return null;
+    if (host !== 'youtu.be' && url.pathname !== '/watch' && !url.pathname.startsWith('/shorts/') && !url.pathname.startsWith('/embed/')) return null;
+    if (url.pathname === '/watch' && !url.searchParams.get('v')) return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+async function generateVideoTranscript(key: string, prompt: string, option: string, videoUrl: string, res: VercelResponse) {
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  let response: Response;
+  try {
+    response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        model,
+        input: [
+          { type: 'text', text: `${prompt}\n\nSelected output style: ${option || 'Clear & concise'}.` },
+          { type: 'video', uri: videoUrl },
+        ],
+      }),
+      signal: AbortSignal.timeout(55_000),
+    });
+  } catch (error) {
+    console.error('Gemini video transcript request failed:', error);
+    return res.status(502).json({ error: 'Gemini could not finish processing this video in time. Try a shorter public video, then try again.' });
+  }
+  const raw = await response.text();
+  let data: { output_text?: unknown; output?: unknown; error?: { message?: string; status?: string } };
+  try { data = JSON.parse(raw) as typeof data; }
+  catch {
+    console.error('Gemini returned an unreadable video response:', response.status, raw.slice(0, 1000));
+    return res.status(502).json({ error: 'Gemini returned an unexpected response while processing the video. Try again shortly.' });
+  }
+  if (!response.ok) {
+    console.error('Gemini video transcript API error:', response.status, data.error);
+    if (response.status === 401 || response.status === 403) return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in Vercel, then redeploy.' });
+    if (response.status === 429) return res.status(502).json({ error: 'Google Gemini rate limit or quota was reached. Check the Gemini API limits and try again later.' });
+    if (response.status === 400) return res.status(422).json({ error: 'Gemini could not access this video. Make sure the YouTube video is public and the link is valid.' });
+    if (response.status === 404) return res.status(502).json({ error: `Gemini model “${model}” is unavailable for video input. Set GEMINI_MODEL to a video-capable Gemini model enabled for your key.` });
+    return res.status(502).json({ error: 'Google Gemini is temporarily unavailable while processing this video. Try again shortly.' });
+  }
+  const output = Array.isArray(data.output) ? data.output : [];
+  const outputText = output.map(item => {
+    if (!item || typeof item !== 'object') return '';
+    const block = item as { type?: unknown; text?: unknown; content?: unknown };
+    if (typeof block.text === 'string') return block.text;
+    if (Array.isArray(block.content)) return block.content.map(part => part && typeof part === 'object' && typeof (part as { text?: unknown }).text === 'string' ? (part as { text: string }).text : '').join('\n');
+    return '';
+  }).filter(Boolean).join('\n\n');
+  const text = typeof data.output_text === 'string' ? data.output_text : outputText;
+  if (!text.trim()) return res.status(502).json({ error: 'Gemini returned no transcript for this video. Confirm it has accessible audio, then try again.' });
+  return res.json({ text });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return sendMethodNotAllowed(res, 'POST');
   try {
@@ -15,6 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const content = bodyString(req, 'content');
     const option = bodyString(req, 'option');
     const documentId = bodyString(req, 'documentId');
+    const tool = bodyString(req, 'tool');
+    const videoUrl = bodyString(req, 'videoUrl');
+    if (tool === 'transcript') {
+      const validVideoUrl = youtubeVideoUrl(videoUrl);
+      if (!validVideoUrl) return res.status(400).json({ error: 'Enter a valid YouTube video link.' });
+      if (!prompt) return res.status(400).json({ error: 'Transcript instructions are missing. Refresh the page and try again.' });
+      return generateVideoTranscript(key, prompt, option, validVideoUrl, res);
+    }
     if (!prompt || (!content && !documentId)) return res.status(400).json({ error: 'Add your study material or select an uploaded PDF first.' });
     if (content.length > 30000) return res.status(413).json({ error: 'Please keep your input under 30,000 characters.' });
     const parts: Part[] = [{ text: `${prompt}\n\nStudent preference: ${option || 'clear and useful'}.${content ? `\n\nStudent material:\n${content}` : ''}` }];
