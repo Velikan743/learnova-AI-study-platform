@@ -40,7 +40,7 @@ async function generateVideoTranscript(key: string, prompt: string, option: stri
     return res.status(502).json({ error: 'Gemini could not finish processing this video in time. Try a shorter public video, then try again.' });
   }
   const raw = await response.text();
-  let data: { output_text?: unknown; output?: unknown; error?: { message?: string; status?: string } };
+  let data: { output_text?: unknown; output?: unknown; outputs?: unknown; steps?: unknown; status?: unknown; error?: { message?: string; status?: string } };
   try { data = JSON.parse(raw) as typeof data; }
   catch {
     console.error('Gemini returned an unreadable video response:', response.status, raw.slice(0, 1000));
@@ -54,16 +54,20 @@ async function generateVideoTranscript(key: string, prompt: string, option: stri
     if (response.status === 404) return res.status(502).json({ error: `Gemini model “${model}” is unavailable for video input. Set GEMINI_VIDEO_MODEL to a video-capable Gemini model enabled for your key.` });
     return res.status(502).json({ error: 'Google Gemini is temporarily unavailable while processing this video. Try again shortly.' });
   }
-  const output = Array.isArray(data.output) ? data.output : [];
-  const outputText = output.map(item => {
+  const textFromItems = (items: unknown[]): string => items.map(item => {
     if (!item || typeof item !== 'object') return '';
     const block = item as { type?: unknown; text?: unknown; content?: unknown };
     if (typeof block.text === 'string') return block.text;
-    if (Array.isArray(block.content)) return block.content.map(part => part && typeof part === 'object' && typeof (part as { text?: unknown }).text === 'string' ? (part as { text: string }).text : '').join('\n');
+    if (Array.isArray(block.content)) return textFromItems(block.content);
     return '';
   }).filter(Boolean).join('\n\n');
-  const text = typeof data.output_text === 'string' ? data.output_text : outputText;
-  if (!text.trim()) return res.status(502).json({ error: 'Gemini returned no transcript for this video. Confirm it has accessible audio, then try again.' });
+  const steps = Array.isArray(data.steps) ? data.steps.filter(step => step && typeof step === 'object' && (step as { type?: unknown }).type === 'model_output') : [];
+  const output = Array.isArray(data.output) ? data.output : Array.isArray(data.outputs) ? data.outputs : [];
+  const text = typeof data.output_text === 'string' ? data.output_text : textFromItems(steps.length ? steps : output);
+  if (!text.trim()) {
+    console.error('Gemini completed the video interaction without readable model output:', { model, status: data.status, steps: Array.isArray(data.steps) ? data.steps.map(step => step && typeof step === 'object' ? (step as { type?: unknown }).type : typeof step) : undefined });
+    return res.status(502).json({ error: 'Gemini completed the video request but returned no transcript text. Try again, or use a different video model.' });
+  }
   return res.json({ text });
 }
 
