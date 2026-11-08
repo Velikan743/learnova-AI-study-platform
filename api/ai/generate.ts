@@ -28,12 +28,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const model = new GoogleGenerativeAI(key).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-3.8-flash' });
     let response;
-    try {
-      response = await model.generateContent(parts);
-    } catch (error) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        response = await model.generateContent(parts);
+        break;
+      } catch (error) {
       console.error('Gemini generation failed:', error);
       const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
       const message = typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '';
+      if ((status >= 500 || status === 0) && attempt < 2) {
+        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+        continue;
+      }
       if (status === 401 || status === 403 || /API_KEY_INVALID|API key not valid/i.test(message)) {
         return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in your Vercel environment variables, then redeploy.' });
       }
@@ -47,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(502).json({ error: 'Google Gemini is temporarily unavailable. Wait a moment and try again.' });
       }
       return res.status(502).json({ error: 'Google Gemini could not generate this response. Check the Vercel function logs for the provider error.' });
+      }
     }
     return res.json({ text: response.response.text() });
   } catch (error) { return handleError(res, error); }
