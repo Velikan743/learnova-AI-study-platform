@@ -47,6 +47,15 @@
   .auth-footer{bottom:8px;font-size:9px}
 }
 .subjects-panel{margin:0 0 17px;padding:16px 18px}
+.result-content h1,.result-content h2,.result-content h3,.result-content h4{font-family:'Manrope';color:#30304a;line-height:1.35;margin:18px 0 8px}
+.result-content h1{font-size:20px}.result-content h2{font-size:17px}.result-content h3,.result-content h4{font-size:14px}
+.result-content p{margin:8px 0}.result-content ul,.result-content ol{padding-left:22px;margin:8px 0 12px}.result-content li{padding-left:3px;margin:4px 0}
+.result-content hr{border:0;border-top:1px solid #e9e7f2;margin:16px 0}.result-content blockquote{margin:10px 0;padding:8px 12px;border-left:3px solid #8372e9;background:#faf9ff}
+.result-content code{font-family:ui-monospace,monospace;background:#f2f0fa;border-radius:4px;padding:1px 4px}
+.recent-creation-list{display:grid;gap:5px;max-height:300px;overflow:auto}
+.recent-creation{display:flex;width:100%;flex-direction:column;align-items:flex-start;gap:4px;padding:9px 10px;border:1px solid #eeedf4;border-radius:7px;background:#fff;text-align:left;cursor:pointer}
+.recent-creation:hover{border-color:#cfc8f6;background:#faf9ff}
+.recent-creation b{font-size:11px;color:#45455c;line-height:1.45}.recent-creation small{font-size:9px;color:#9999aa}
 .subjects-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .subjects-panel-head h2{font:700 16px 'Manrope';margin:0;color:#30304a}
 .subjects-panel-head p{font-size:12px;color:#85859a;margin:5px 0 0;line-height:1.5}
