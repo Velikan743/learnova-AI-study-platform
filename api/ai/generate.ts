@@ -18,7 +18,9 @@ function youtubeVideoUrl(value: string): string | null {
 }
 
 async function generateVideoTranscript(key: string, prompt: string, option: string, videoUrl: string, res: VercelResponse) {
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  // Keep YouTube video handling on a video-capable model independently of the
+  // text model selected for the rest of the app.
+  const model = process.env.GEMINI_VIDEO_MODEL || 'gemini-3.7-flash';
   let response: Response;
   try {
     response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
@@ -49,7 +51,7 @@ async function generateVideoTranscript(key: string, prompt: string, option: stri
     if (response.status === 401 || response.status === 403) return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in Vercel, then redeploy.' });
     if (response.status === 429) return res.status(502).json({ error: 'Google Gemini rate limit or quota was reached. Check the Gemini API limits and try again later.' });
     if (response.status === 400) return res.status(422).json({ error: 'Gemini could not access this video. Make sure the YouTube video is public and the link is valid.' });
-    if (response.status === 404) return res.status(502).json({ error: `Gemini model “${model}” is unavailable for video input. Set GEMINI_MODEL to a video-capable Gemini model enabled for your key.` });
+    if (response.status === 404) return res.status(502).json({ error: `Gemini model “${model}” is unavailable for video input. Set GEMINI_VIDEO_MODEL to a video-capable Gemini model enabled for your key.` });
     return res.status(502).json({ error: 'Google Gemini is temporarily unavailable while processing this video. Try again shortly.' });
   }
   const output = Array.isArray(data.output) ? data.output : [];
