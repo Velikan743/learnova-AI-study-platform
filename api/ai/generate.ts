@@ -49,7 +49,7 @@ async function generateVideoTranscript(key: string, prompt: string, option: stri
   if (!response.ok) {
     console.error('Gemini video transcript API error:', response.status, data.error);
     if (response.status === 401 || response.status === 403) return res.status(502).json({ error: 'Google Gemini rejected the API key. Check GEMINI_API_KEY in Vercel, then redeploy.' });
-    if (response.status === 429) return res.status(502).json({ error: 'Google Gemini rate limit or quota was reached. Check the Gemini API limits and try again later.' });
+    if (response.status === 429) return res.status(502).json({ error: `Google Gemini model “${model}” rate limit or quota was reached. Check this model’s limits and try again later.` });
     if (response.status === 400) return res.status(422).json({ error: 'Gemini could not access this video. Make sure the YouTube video is public and the link is valid.' });
     if (response.status === 404) return res.status(502).json({ error: `Gemini model “${model}” is unavailable for video input. Set GEMINI_VIDEO_MODEL to a video-capable Gemini model enabled for your key.` });
     return res.status(502).json({ error: 'Google Gemini is temporarily unavailable while processing this video. Try again shortly.' });
