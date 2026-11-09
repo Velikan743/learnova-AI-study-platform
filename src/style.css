@@ -213,3 +213,17 @@
 .planner-side>p{font-size:12px;line-height:1.5}
 .pomodoro .eyebrow{font-size:10px}
 .pomodoro p{font-size:12px}
+/* Slightly larger supporting text throughout the app */
+.workspace-copy small,.profile-copy small{font-size:11px}
+.nav-label,.nav-count,.search kbd,.top-avatar{font-size:11px}
+.upgrade-card p,.upgrade-card button,.settings-link{font-size:12px}
+.stat-foot,.chart-y,.chart-x,.donut small,.focus-progress>div:last-child>small{font-size:11px}
+.task-row>div small,.task-tag,.date-tile small,.session-info small,.session-action{font-size:11px}
+.quick-tool small,.footer-note,.goal-row,.insight-panel p{font-size:11px}
+.tool-label small,.field-label,.info-callout,.privacy-note{font-size:12px}
+.tip-card .eyebrow,.recent-card .panel-head p,.recent-empty p,.result-top small,.error-result p{font-size:11px}
+.library-copy small,.pdf-upload-copy small,.uploaded-file-row small,.selected-document{font-size:11px}
+.modal>p,.settings-line,.toast,.float-card,.art-caption p,.art-dots{font-size:11px}
+.auth-help,.auth-welcome .eyebrow,.auth-welcome p,.auth-tabs button,.auth-box .field-label,.auth-box .text-input{font-size:12px}
+.forgot-row,.forgot-row button,.terms-copy,.auth-divider,.auth-switch,.auth-secure,.auth-footer{font-size:11px}
+.recent-creation small{font-size:11px}
