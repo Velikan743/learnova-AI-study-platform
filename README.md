@@ -1,40 +1,69 @@
 # Learnova
 
-Learnova is an AI-powered study platform built with TypeScript, HTML, and CSS. Its dashboard includes a study planner, progress overview, focus timer, library, and shortcuts to the AI tools. There is no internship portal.
+Learnova is an AI-powered study workspace that helps students turn their own learning materials, goals, and results into practical study support. It combines AI tools with a personal dashboard, subject-based planning, progress tracking, and a private document library.
 
-## Features
+## What you can do
 
-- Email and password account creation and login, with bcrypt password hashing and signed, HTTP-only sessions.
-- AI Quiz Maker, Notes Summarizer, Exam Prep Planner, Performance Analyzer, Transcript Generator, AI Study Advisor, Resume Builder, Career Roadmap, and Interview Prep.
-- Gemini-powered generation through a server endpoint. The Google AI Studio key stays on the server.
-- Private PDF uploads in Neon Object Storage, with per-account library and secure download links.
-- Neon Postgres accounts and uploaded-document metadata.
-- Responsive dashboard, study schedule, progress view, saved-work library layout, and Pomodoro timer.
+- **AI Quiz Maker** — create practice quizzes from notes or a topic.
+- **Notes Summarizer** — extract key ideas from study material.
+- **Exam Prep Planner** — build a revision plan around your subjects and exam dates.
+- **Performance Analyzer** — review grade cards or academic results and get focused improvement suggestions.
+- **Transcript Generator** — create concise summaries, detailed transcripts, or step-by-step study notes from a YouTube video link.
+- **AI Study Advisor** — get study guidance based on your goals and academic context.
+- **Resume Builder** — draft an ATS-friendly resume and download it as a PDF.
+- **Career Roadmap** — create a learning roadmap for a career goal.
+- **Interview Prep** — practice with role-specific interview questions.
+- **Student Dashboard** — manage subjects, study sessions, focus timer, study streaks, activity, and saved work.
 
-## Run locally
+Learnova also includes email-and-password account creation and login, a personal PDF library, and recent activity notifications. The internship portal is not part of the product.
 
-1. Install Node.js 20 or later.
-2. Run `npm install`.
-3. Run `neon deploy` to pull Neon credentials into `.env.local`. Add `GEMINI_API_KEY` from Google AI Studio and a random `SESSION_SECRET` of at least 32 characters to `.env.local`.
-4. In one terminal, run `npm run server`.
-5. In another terminal, run `npm run dev` and open the Vite URL shown in the terminal.
+## How it works
 
-Both local and Vercel API handlers use Neon Postgres. Private PDFs go directly to the Neon `uploads` bucket using short-lived signed URLs; only their metadata is stored in Postgres. Google OAuth and password reset need provider credentials and email delivery configuration; the current login flow is email and password.
+The web interface is built with TypeScript, HTML, and CSS. AI requests are sent to server-side API endpoints, which call Gemini without exposing the API key to the browser. User accounts, subjects, study activity, and saved AI creations use Neon Postgres. Uploaded PDFs are stored privately in the Neon Object Storage `uploads` bucket; the database stores their metadata.
 
-## Deploy to Vercel
+## Technology
 
-1. Push this project to GitHub and import the repository in Vercel. Vercel uses `vercel.json` to run `npm run build` and publish `dist/`; the `api/` TypeScript files become serverless functions.
-2. In Vercel Project Settings → Environment Variables, add the Neon variables from `.env.local`: `DATABASE_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT_URL_S3`, and `AWS_REGION`.
-3. Add `GEMINI_API_KEY` from Google AI Studio and a random `SESSION_SECRET` of at least 32 characters. Optionally set `GEMINI_MODEL`.
-4. Run `npm run db:migrate` once for the Neon branch you are deploying. The migration uses `DATABASE_URL_UNPOOLED` when available.
-5. Redeploy after setting the environment variables. Keep these secrets in Vercel’s settings, never in frontend code or Git. Do not put the secret values in `VITE_` variables.
+- **Frontend:** TypeScript, Vite, HTML, CSS
+- **Server/API:** TypeScript serverless functions on Vercel
+- **Database:** Neon Postgres (`pg`)
+- **File storage:** Neon Object Storage through the Neon Files SDK
+- **AI:** Google Gemini API via Google AI Studio
+- **Authentication:** Email and password with bcrypt-hashed passwords and signed, HTTP-only sessions
 
-The project is configured for Vercel’s Node.js serverless runtime. Database connections use `pg` with Vercel’s `attachDatabasePool` helper, and the Neon Files SDK handles private object storage.
+## Deploying on Vercel
 
-### Video transcripts
+1. Import the GitHub repository into Vercel. The project uses `vercel.json` to build with `npm run build`, publish the `dist` directory, and deploy the `api/` handlers as serverless functions.
+2. Connect the Neon project and enable Postgres and the private `uploads` object-storage bucket.
+3. Add the following server-side environment variables in the Vercel project settings. Keep them out of client-side `VITE_` variables and out of Git.
 
-The transcript tool accepts a video URL and optional caption text. A URL alone does not provide the server with the video's audio or captions, so the tool asks for pasted captions to produce an accurate transcript rather than inventing dialogue. A production transcript pipeline needs a permitted caption or audio transcription provider.
+   | Variable | Purpose |
+   | --- | --- |
+   | `DATABASE_URL` | Neon Postgres connection string |
+   | `AWS_ACCESS_KEY_ID` | Neon Object Storage access key |
+   | `AWS_SECRET_ACCESS_KEY` | Neon Object Storage secret key |
+   | `AWS_ENDPOINT_URL_S3` | Neon Object Storage S3 endpoint |
+   | `AWS_REGION` | Object-storage region from Neon |
+   | `GEMINI_API_KEY` | Google AI Studio API key |
+   | `SESSION_SECRET` | Random private secret of at least 32 characters for signing sessions |
+   | `GEMINI_MODEL` | Optional model for text tools; defaults to `gemini-3.8-flash` |
+   | `GEMINI_VIDEO_MODEL` | Optional video-capable model for the transcript tool; defaults to `gemini-3.7-flash` |
 
-## Build
+4. Apply the SQL files in `migrations/` to the Neon database before using the app. Keep schema updates in numbered migration files.
+5. Redeploy after changing environment variables or database configuration. Review Vercel function logs if an API request fails.
 
-Run `npm run build` to type-check and create the production frontend in `dist/`.
+The transcript feature sends the supplied video URL to the configured Gemini video model. The video must be accessible to that model; availability depends on the model enabled for the API key and its current quota.
+
+## Project structure
+
+```text
+api/          Server-side API handlers
+migrations/   Neon Postgres schema migrations
+public/       Static assets, including the site favicon
+scripts/      Database migration and verification utilities
+server/       Express API server used by the development setup
+src/          TypeScript application and styles
+```
+
+## Privacy and secrets
+
+PDFs are stored in a private object-storage bucket and accessed through the app’s authenticated API. Database credentials, the Gemini key, and the session secret belong only in protected server environment settings. Never commit real secret values.
