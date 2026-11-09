@@ -10,7 +10,7 @@ Learnova is an AI-powered study workspace that helps students turn their own lea
 - **Performance Analyzer** — review grade cards or academic results and get focused improvement suggestions.
 - **Transcript Generator** — create concise summaries, detailed transcripts, or step-by-step study notes from a YouTube video link.
 - **AI Study Advisor** — get study guidance based on your goals and academic context.
-- **Resume Builder** — draft an ATS-friendly resume and download it as a PDF.
+- **Resume Builder** — draft an ATS-friendly resume and download it as an editable DOCX file.
 - **Career Roadmap** — create a learning roadmap for a career goal.
 - **Interview Prep** — practice with role-specific interview questions.
 - **Student Dashboard** — manage subjects, study sessions, focus timer, study streaks, activity, and saved work.
