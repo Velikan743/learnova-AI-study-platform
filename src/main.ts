@@ -21,10 +21,14 @@ let stats:ActivityStats={minutes_this_week:0,quizzes_generated:0,sessions_comple
 let focusSubject='';
 type Subject = { id: string; name: string };
 let subjects: Subject[] = [];
+const completedFocusTasks=new Set<string>();
 let activeDocument: { id: string; filename: string } | null = null;
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 function subjectColor(name:string){const index=subjects.findIndex(subject=>subject.name.toLocaleLowerCase()===name.trim().toLocaleLowerCase());return index<0?'#b8b5c9':`hsl(${(250+index*137.508)%360} 68% 54%)`}
+function focusTaskKey(subjectId:string){return `learnova-focus-task:${encodeURIComponent(user?.email.toLowerCase()||'')}:${localDateString()}:${encodeURIComponent(subjectId)}`}
+function isFocusTaskComplete(subjectId:string){const key=focusTaskKey(subjectId);if(completedFocusTasks.has(key))return true;try{return localStorage.getItem(key)==='true'}catch{return false}}
+function setFocusTaskComplete(subjectId:string,complete:boolean){const key=focusTaskKey(subjectId);if(complete)completedFocusTasks.add(key);else completedFocusTasks.delete(key);try{if(complete)localStorage.setItem(key,'true');else localStorage.removeItem(key)}catch{}}
 function focusDonutGradient(){const rows=stats.sessions_by_subject||[];const total=rows.reduce((sum,row)=>sum+Number(row.count||0),0);if(!total)return 'conic-gradient(#eeecfa 0deg 360deg)';let cursor=0;const stops=rows.filter(row=>row.count>0).map(row=>{const start=cursor*360/total;cursor+=Number(row.count);return `${row.subject?subjectColor(row.subject):'#cbc9d8'} ${start}deg ${cursor*360/total}deg`});return `conic-gradient(${stops.join(',')})`}
 function formatMarkdown(markdown:string){
   const inline=(value:string)=>esc(value).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/__(.+?)__/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>').replace(/(^|[^_])_([^_\n]+)_(?!_)/g,'$1<em>$2</em>');
@@ -188,6 +192,12 @@ function localDateString(date = new Date()) { return `${date.getFullYear()}-${St
 function refreshDashboardSubjectContent(){
   const taskList=app.querySelector<HTMLDivElement>('.task-list');
   if(taskList)taskList.innerHTML=subjects.length?subjects.slice(0,2).map((subject,index)=>`<div class="task-row"><span class="task-check" style="border-color:${subjectColor(subject.name)}"></span><div><b>${index===0?'Review':'Practice'} ${esc(subject.name)}</b><small><i class="subject-color-dot" style="background:${subjectColor(subject.name)}" aria-hidden="true"></i>${esc(subject.name)} · 25 min</small></div><span class="task-tag tag-next">Suggested</span></div>`).join(''):'<div class="subject-empty"><b>No subjects added yet</b><small>Add your subjects above to personalize your focus.</small></div>';
+  taskList?.querySelectorAll<HTMLSpanElement>('.task-row .task-check').forEach((placeholder,index)=>{
+    const subject=subjects[index];if(!subject)return;
+    const complete=isFocusTaskComplete(subject.id);const button=document.createElement('button');button.type='button';button.className=`task-check${complete?' checked':''}`;button.style.setProperty('--subject-color',subjectColor(subject.name));button.dataset.focusTask=subject.id;button.setAttribute('aria-pressed',String(complete));button.setAttribute('aria-label',`Mark ${subject.name} task ${complete?'not complete':'complete'}`);button.textContent=complete?'✓':'';
+    const row=placeholder.closest<HTMLElement>('.task-row');row?.classList.toggle('completed',complete);const tag=row?.querySelector<HTMLElement>('.task-tag');if(tag){tag.className=`task-tag ${complete?'tag-done':'tag-next'}`;tag.textContent=complete?'Done':'Suggested'}
+    button.addEventListener('click',()=>{setFocusTaskComplete(subject.id,button.getAttribute('aria-pressed')!=='true');refreshDashboardSubjectContent()});placeholder.replaceWith(button);
+  });
   const sessionList=app.querySelector<HTMLDivElement>('.session-list');
   if(sessionList)sessionList.innerHTML=subjects.length?subjects.slice(0,3).map(subject=>`<div class="session"><span class="session-line" style="background:${subjectColor(subject.name)}"></span><div class="session-info"><b>${esc(subject.name)} study session</b><small>Suggested · 25 minutes</small></div><button class="session-action" data-action="start-session" data-subject="${esc(subject.name)}">Start <span>→</span></button></div>`).join(''):'<div class="subject-empty"><b>Your study sessions will start here</b><small>Add subjects above, then choose a subject for a focused session.</small></div>';
   const header=app.querySelector('.upcoming-panel .panel-head');const title=header?.querySelector('h2');if(title)title.textContent=subjects.length?'Study by subject':'Your study subjects';const sub=header?.querySelector('p');if(sub)sub.textContent=subjects.length?'Pick a subject to start a focused session.':'Add subjects to personalize your study space.';

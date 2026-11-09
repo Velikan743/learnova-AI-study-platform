@@ -184,6 +184,9 @@
 .exam-remove:disabled{opacity:.35;cursor:not-allowed}
 .subject-color-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px;flex:none}
 .subject-chip-item .subject-color-dot{margin-right:0}
+.task-check{border-color:var(--subject-color,#dedee9);cursor:pointer;transition:background-color .15s,border-color .15s}
+.task-check.checked{background:var(--subject-color,#7c6fe0);border-color:var(--subject-color,#7c6fe0)}
+.task-row.completed>div b{text-decoration:line-through;color:#8d8ea5}
 .add-exam-row{padding:8px 0 15px;color:#6d61cf;font-size:12px;font-weight:700}
 .planner-notes-label{margin-top:2px}
 .planner-prompt-data{display:none!important}
