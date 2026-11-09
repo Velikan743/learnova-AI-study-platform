@@ -227,3 +227,4 @@
 .auth-help,.auth-welcome .eyebrow,.auth-welcome p,.auth-tabs button,.auth-box .field-label,.auth-box .text-input{font-size:12px}
 .forgot-row,.forgot-row button,.terms-copy,.auth-divider,.auth-switch,.auth-secure,.auth-footer{font-size:11px}
 .recent-creation small{font-size:11px}
+.brand-mark img{display:block;width:23px;height:23px;object-fit:contain}
