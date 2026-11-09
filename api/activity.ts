@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const db = database();
   try {
     if (req.method === 'GET') {
-      const [totals, days, uploads, sessionsBySubject] = await Promise.all([
+      const [totals, days, uploads, sessionsBySubject, recentActivity] = await Promise.all([
         db.query(`SELECT
           COALESCE(SUM(duration_minutes) FILTER (WHERE created_at >= date_trunc('week', NOW())), 0)::int AS minutes_this_week,
           COUNT(*) FILTER (WHERE event_type = 'quiz_generated')::int AS quizzes_generated,
@@ -19,7 +19,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           WHERE user_id = $1 AND event_type = 'study_session'
           GROUP BY created_at::date ORDER BY day DESC LIMIT 366`, [userId]),
         db.query(`SELECT COUNT(*)::int AS count FROM learnova_documents WHERE user_id = $1 AND status = 'uploaded'`, [userId]),
-        db.query(`SELECT subject, COUNT(*)::int AS count, MIN(created_at) AS first_session FROM learnova_activity WHERE user_id = $1 AND event_type = 'study_session' GROUP BY subject ORDER BY first_session`, [userId])
+        db.query(`SELECT subject, COUNT(*)::int AS count, MIN(created_at) AS first_session FROM learnova_activity WHERE user_id = $1 AND event_type = 'study_session' GROUP BY subject ORDER BY first_session`, [userId]),
+        db.query(`SELECT id, event_type, subject, duration_minutes, created_at FROM learnova_activity WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10`, [userId])
       ]);
       const activeDays = new Set(days.rows.map(row => String(row.day).slice(0, 10)));
       let streak = 0;
@@ -27,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const today = date.toISOString().slice(0, 10);
       if (!activeDays.has(today)) date.setUTCDate(date.getUTCDate() - 1);
       while (activeDays.has(date.toISOString().slice(0, 10))) { streak++; date.setUTCDate(date.getUTCDate() - 1); }
-      return res.status(200).json({ ...totals.rows[0], current_streak: streak, notes_uploaded: uploads.rows[0].count, sessions_by_subject: sessionsBySubject.rows.map(row => ({ subject: row.subject === null ? null : String(row.subject), count: Number(row.count) })) });
+      return res.status(200).json({ ...totals.rows[0], current_streak: streak, notes_uploaded: uploads.rows[0].count, sessions_by_subject: sessionsBySubject.rows.map(row => ({ subject: row.subject === null ? null : String(row.subject), count: Number(row.count) })), recent_activity: recentActivity.rows.map(row => ({ id: String(row.id), type: String(row.event_type), subject: row.subject === null ? null : String(row.subject), durationMinutes: Number(row.duration_minutes), createdAt: row.created_at })) });
     }
     if (req.method === 'POST') {
       const type = bodyString(req, 'type');
