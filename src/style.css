@@ -195,3 +195,6 @@
   .exam-weekday b{font-size:10px}
   .exam-remove{width:30px;height:32px}
 }
+.uploaded-file-actions{display:flex;align-items:center;gap:8px}
+.uploaded-file-delete{color:#bd5267;background:#fff0f3}
+.uploaded-file-delete:disabled{opacity:.6;cursor:wait}
