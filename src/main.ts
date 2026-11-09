@@ -208,7 +208,7 @@ function enhanceDashboardSubjects(){
   refreshDashboardSubjectContent();
 }
 function plannerExamRowMarkup(){
-  return `<div class="exam-row"><label><span>Subject</span><input class="text-input" data-exam-subject list="learnova-subject-list" maxlength="100" placeholder="Type or choose a subject" /></label><label><span>Exam date</span><input class="text-input" data-exam-date type="date" min="${localDateString()}" /></label><div class="exam-weekday"><span>Day</span><b data-exam-weekday>Select a date</b></div><button class="exam-remove" type="button" data-remove-exam aria-label="Remove exam">×</button></div>`;
+  return `<div class="exam-row"><label><span class="sr-only">Subject</span><input class="text-input" data-exam-subject list="learnova-subject-list" maxlength="100" placeholder="Type or choose a subject" /></label><label><span class="sr-only">Exam date</span><input class="text-input" data-exam-date type="date" min="${localDateString()}" /></label><div class="exam-weekday"><span class="sr-only">Day</span><b data-exam-weekday aria-live="polite">Select a date</b></div><button class="exam-remove" type="button" data-remove-exam aria-label="Remove exam">×</button></div>`;
 }
 function enhanceStudyPlannerSubjects(){
   const week=app.querySelector<HTMLDivElement>('.week-panel');if(!week)return;
