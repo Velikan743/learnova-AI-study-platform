@@ -203,3 +203,13 @@
 .uploaded-file-actions{display:flex;align-items:center;gap:8px}
 .uploaded-file-delete{color:#bd5267;background:#fff0f3}
 .uploaded-file-delete:disabled{opacity:.6;cursor:wait}
+.week-panel .panel-head p{font-size:11px}
+.week-day small{font-size:11px}
+.week-day b{font-size:14px;width:30px;height:30px}
+.planner-session>div b{font-size:12px}
+.planner-session>div small{font-size:11px}
+.subject-chip{font-size:10px}
+.add-session{font-size:12px}
+.planner-side>p{font-size:12px;line-height:1.5}
+.pomodoro .eyebrow{font-size:10px}
+.pomodoro p{font-size:12px}
